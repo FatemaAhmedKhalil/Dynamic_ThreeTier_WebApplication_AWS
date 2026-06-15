@@ -50,3 +50,7 @@ Ansible is responsible for the configuration layer, relying on automated discove
 *   **Dynamic Inventory:** The `amazon.aws.aws_ec2` plugin queries the AWS API at runtime to build a live inventory of running instances based on their EC2 tags.
 *   **Secure Tunnelling:** Ansible connects to instances in private subnets by tunneling SSH traffic through the Bastion Host using a configured `ProxyCommand`.
 *   **Application Deployment:** The "Novolt waitlist" application code is cloned dynamically from its GitHub repository (`https://github.com/OmarAlaaEl-Din/novolt-waitlist.git`) onto the frontend and backend servers. The MongoDB connection string is injected dynamically into the backend `.env` file without hard-coded IP addresses.
+
+
+## 📁 Project Documentation
+📄 **[View Full Project PDF](./Project.pdf)**
