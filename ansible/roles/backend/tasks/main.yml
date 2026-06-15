@@ -1,0 +1,43 @@
+---
+- name: Install standard dependencies
+  apt:
+    name: ['git', 'curl']
+    state: present
+    update_cache: yes
+
+- name: Add NodeSource repository for Node.js 18.x
+  shell: curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+
+- name: Install Node.js
+  apt:
+    name: nodejs
+    state: present
+
+- name: Install PM2 globally (Process Manager)
+  command: npm install -g pm2
+
+- name: Clone the novolt-waitlist repository
+  git:
+    repo: 'https://github.com/OmarAlaaEl-Din/novolt-waitlist.git'
+    dest: /home/ubuntu/novolt-waitlist
+    force: yes
+
+- name: Install NPM packages
+  command: npm install
+  args:
+    chdir: /home/ubuntu/novolt-waitlist/api
+
+- name: Create .env file with Dynamic Database URI
+  copy:
+    dest: /home/ubuntu/novolt-waitlist/api/.env
+    content: |
+      PORT=3000
+      MONGO_URI=mongodb://{{ hostvars[groups['role_database'][0]]['private_ip_address'] }}:27017,{{ hostvars[groups['role_database'][1]]['private_ip_address'] }}:27017,{{ hostvars[groups['role_database'][2]]['private_ip_address'] }}:27017/novolt?replicaSet=rs0
+      
+- name: Restart backend app with PM2
+  shell: "pm2 restart novolt-backend || pm2 start index.js --name novolt-backend"
+  args:
+    chdir: /home/ubuntu/novolt-waitlist/api
+
+- name: Save PM2 config to start on boot
+  command: pm2 save

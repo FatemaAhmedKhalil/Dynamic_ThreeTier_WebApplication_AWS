@@ -1,0 +1,18 @@
+---
+- name: Configure Database Servers
+  hosts: role_database
+  become: yes
+  roles:
+    - database
+
+- name: Configure Backend Servers
+  hosts: role_backend
+  become: yes
+  roles:
+    - backend
+
+- name: Configure Frontend Servers
+  hosts: role_frontend
+  become: yes
+  roles:
+    - frontend

@@ -1,0 +1,48 @@
+---
+- name: Import MongoDB public GPG key
+  apt_key:
+    url: https://pgp.mongodb.com/server-7.0.asc
+    state: present
+
+- name: Add MongoDB repository
+  apt_repository:
+    repo: "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse"
+    state: present
+
+- name: Install MongoDB
+  apt:
+    name: mongodb-org
+    state: present
+    update_cache: yes
+
+- name: Configure MongoDB (mongod.conf)
+  template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+  notify: Restart MongoDB
+
+- name: Start and enable MongoDB service
+  service:
+    name: mongod
+    state: started
+    enabled: yes
+
+- name: Wait longer for MongoDB to be ready (30 seconds)
+  pause:
+    seconds: 30
+
+- name: Initialize MongoDB Replica Set
+  shell: |
+    mongosh --eval 'rs.initiate({
+      _id: "rs0",
+      members: [
+        {_id: 0, host: "{{ hostvars[groups["role_database"][0]]["private_ip_address"] }}:27017"},
+        {_id: 1, host: "{{ hostvars[groups["role_database"][1]]["private_ip_address"] }}:27017"},
+        {_id: 2, host: "{{ hostvars[groups["role_database"][2]]["private_ip_address"] }}:27017"}
+      ]
+    })'
+  run_once: true
+  register: rs_init_result
+  failed_when: 
+    - rs_init_result.rc != 0 
+    - '"already initialized" not in rs_init_result.stderr'

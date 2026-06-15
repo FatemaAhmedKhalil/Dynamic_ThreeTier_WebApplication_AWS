@@ -1,0 +1,30 @@
+---
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Clone the repository for Frontend files
+  git:
+    repo: 'https://github.com/OmarAlaaEl-Din/novolt-waitlist.git'
+    dest: /tmp/novolt-repo
+    force: yes
+
+- name: Copy frontend files to Nginx directory
+  copy:
+    src: /tmp/novolt-repo/
+    dest: /var/www/html/
+    remote_src: yes
+
+- name: Configure Nginx as Reverse Proxy
+  template:
+    src: nginx_conf.j2
+    dest: /etc/nginx/sites-available/default
+  notify: Restart Nginx
+
+- name: Start and Enable Nginx
+  service:
+    name: nginx
+    state: started
+    enabled: yes
